@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from services.ndml_client import NDMLClient
 from services.xml_builder import pan_inquiry_xml
+from services.utils import xml_to_json
 
 bp = Blueprint("pan_inquiry", __name__)
 client = NDMLClient()
@@ -13,6 +14,5 @@ def pan_inquiry():
     xml = pan_inquiry_xml(data["pan"], data["mobile"], data["request_no"])
 
     response = client.call("panInquiryDetails", xml)
-    
-    # Response is already parsed to JSON by NDMLClient
+    response = xml_to_json(response)
     return jsonify(response)
