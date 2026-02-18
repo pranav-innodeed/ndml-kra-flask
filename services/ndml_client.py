@@ -20,9 +20,21 @@ class NDMLClient:
         )
 
         method = getattr(client.service, method_name)
-        response = method(
-            xml_bytes, os.getenv("NDML_USER_ID"), enc_pwd, os.getenv("NDML_PASSKEY")
-        )
+        if method_name == "panInquiryDetailsTwo":
+            response = method(
+                xml_bytes,
+                os.getenv("NDML_USER_ID"),
+                enc_pwd,
+                os.getenv("NDML_PASSKEY"),
+                os.getenv("BP_ID"),
+            )
+        else:
+            response = method(
+                xml_bytes,
+                os.getenv("NDML_USER_ID"),
+                enc_pwd,
+                os.getenv("NDML_PASSKEY"),
+            )
         return response
 
     def mock_response(self, method_name, xml_bytes):
