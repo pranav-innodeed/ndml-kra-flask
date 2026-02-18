@@ -9,10 +9,16 @@ client = NDMLClient()
 
 @bp.route("/ndml/api/v1/pan-inquiry", methods=["POST"])
 def pan_inquiry():
-    data = request.json
+    try:
+        data = request.json
 
-    xml = pan_inquiry_xml(data["pan"], data["mobile"], data["request_no"])
+        xml = pan_inquiry_xml(data["pan"], data["mobile"], data["request_no"])
 
-    response = client.call("panInquiryDetails", xml)
-    response = xml_to_json(response)
-    return jsonify(response)
+        response = client.call("panInquiryDetails", xml)
+        print(f"pan inquiry response: {response}")
+        response = xml_to_json(response)
+        response = {"status": "success", "data": response}
+        return jsonify(response), 200
+    except Exception as e:
+        response = {"status": "error", "message": str(e)}
+        return jsonify(response), 500
