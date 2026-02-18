@@ -1,4 +1,85 @@
 import os
+from lxml import etree
+
+def xml_to_dict(element):
+    """Convert XML element to dictionary recursively."""
+    result = {}
+    
+    # Add text content if present
+    if element.text and element.text.strip():
+        result['_text'] = element.text.strip()
+    
+    # Add attributes if present
+    if element.attrib:
+        result['_attributes'] = element.attrib
+    
+    # Process child elements
+    for child in element:
+        child_tag = child.tag
+        child_data = xml_to_dict(child)
+        
+        # If multiple children with same tag, make it a list
+        if child_tag in result:
+            if not isinstance(result[child_tag], list):
+                result[child_tag] = [result[child_tag]]
+            result[child_tag].append(child_data)
+        else:
+            result[child_tag] = child_data
+    
+    # If only text content, return just the text
+    if len(result) == 1 and '_text' in result:
+        return result['_text']
+    
+    # If only attributes and text, simplify
+    if len(result) == 2 and '_text' in result and '_attributes' in result:
+        return result['_text']
+    
+    return result
+
+def parse_xml_response(response):
+    """Parse XML response to JSON-compatible dictionary."""
+    # If already a dict, return as-is
+    if isinstance(response, dict):
+        return response
+    
+    # If None or empty, return empty dict
+    if not response:
+        return {}
+    
+    # Handle zeep objects (structured objects from SOAP)
+    try:
+        from zeep.helpers import serialize_object
+        # Convert zeep object to dict
+        serialized = serialize_object(response)
+        return serialized
+    except (ImportError, AttributeError, TypeError):
+        pass
+    
+    # Handle XML strings
+    try:
+        xml_str = response
+        # If it's bytes, decode it
+        if isinstance(xml_str, bytes):
+            xml_str = xml_str.decode('utf-8')
+        
+        # If it's a string, parse as XML
+        if isinstance(xml_str, str):
+            root = etree.fromstring(xml_str.encode('utf-8'))
+            return xml_to_dict(root)
+    except (etree.XMLSyntaxError, ValueError, TypeError):
+        pass
+    
+    # If all parsing fails, try to convert to string representation
+    try:
+        # Try to get string representation
+        if hasattr(response, '__dict__'):
+            return response.__dict__
+        return {"response": str(response)}
+    except Exception as e:
+        return {
+            "raw_response": str(response),
+            "parse_error": str(e)
+        }
 
 class NDMLClient:
     def __init__(self):
@@ -9,18 +90,13 @@ class NDMLClient:
             return self.mock_response(method_name, xml_bytes)
 
         # REAL NDML CALL (will be used later)
-        from requests import Session
         from zeep import Client
         from zeep.transports import Transport
 
-        session = Session()
-        server_ip = os.getenv("SERVERIP")
-        if server_ip:
-            session.headers.update({"SERVERIP": server_ip})
 
         client = Client(
             wsdl=os.getenv("NDML_WSDL"),
-            transport=Transport(session=session, timeout=30)
+            transport=Transport(timeout=30)
         )
 
         enc_pwd = client.service.getPasscode(
@@ -29,12 +105,15 @@ class NDMLClient:
         )
 
         method = getattr(client.service, method_name)
-        return method(
+        response = method(
             xml_bytes,
             os.getenv("NDML_USER_ID"),
             enc_pwd,
             os.getenv("NDML_PASSKEY")
         )
+        
+        # Parse XML response to JSON
+        return parse_xml_response(response)
 
     def mock_response(self, method_name, xml_bytes):
         return {

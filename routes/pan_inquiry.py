@@ -13,5 +13,6 @@ def pan_inquiry():
     xml = pan_inquiry_xml(data["pan"], data["mobile"], data["request_no"])
 
     response = client.call("panInquiryDetails", xml)
-
+    
+    # Response is already parsed to JSON by NDMLClient
     return jsonify(response)
