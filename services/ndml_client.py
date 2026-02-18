@@ -5,36 +5,42 @@ def xml_to_dict(element):
     """Convert XML element to dictionary recursively."""
     result = {}
     
-    # Add text content if present
-    if element.text and element.text.strip():
-        result['_text'] = element.text.strip()
+    # Process child elements
+    children = list(element)
+    
+    if children:
+        # Element has children - process them
+        for child in children:
+            child_tag = child.tag
+            child_data = xml_to_dict(child)
+            
+            # If multiple children with same tag, make it a list
+            if child_tag in result:
+                if not isinstance(result[child_tag], list):
+                    result[child_tag] = [result[child_tag]]
+                result[child_tag].append(child_data)
+            else:
+                result[child_tag] = child_data
+        
+        # Add attributes if present
+        if element.attrib:
+            result['_attributes'] = element.attrib
+        
+        return result
+    
+    # Leaf element - no children
+    # Get text content (handle None and empty strings)
+    text_content = element.text.strip() if element.text and element.text.strip() else ""
     
     # Add attributes if present
     if element.attrib:
+        if text_content:
+            result['_text'] = text_content
         result['_attributes'] = element.attrib
+        return result if result else text_content
     
-    # Process child elements
-    for child in element:
-        child_tag = child.tag
-        child_data = xml_to_dict(child)
-        
-        # If multiple children with same tag, make it a list
-        if child_tag in result:
-            if not isinstance(result[child_tag], list):
-                result[child_tag] = [result[child_tag]]
-            result[child_tag].append(child_data)
-        else:
-            result[child_tag] = child_data
-    
-    # If only text content, return just the text
-    if len(result) == 1 and '_text' in result:
-        return result['_text']
-    
-    # If only attributes and text, simplify
-    if len(result) == 2 and '_text' in result and '_attributes' in result:
-        return result['_text']
-    
-    return result
+    # Return text content or empty string for empty elements
+    return text_content
 
 def parse_xml_response(response):
     """Parse XML response to JSON-compatible dictionary."""
@@ -111,7 +117,7 @@ class NDMLClient:
             enc_pwd,
             os.getenv("NDML_PASSKEY")
         )
-        
+        print(response)
         # Parse XML response to JSON
         return parse_xml_response(response)
 
