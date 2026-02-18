@@ -19,7 +19,7 @@ def kyc_modify():
         print(f"kyc modify response: {response}")
         response = xml_to_json(response)
         response = {"status": "success", "data": response}
-        return jsonify(response), 200
+        return response, 200
     except Exception as e:
         response = {"status": "error", "message": str(e)}
-        return jsonify(response), 500
+        return response, 500
