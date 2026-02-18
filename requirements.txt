@@ -2,3 +2,4 @@ flask
 zeep
 lxml
 python-dotenv
+requests

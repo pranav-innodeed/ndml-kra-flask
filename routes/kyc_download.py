@@ -5,7 +5,7 @@ from services.xml_builder import kyc_download_xml
 bp = Blueprint("kyc_download", __name__)
 client = NDMLClient()
 
-@bp.route("/kyc-download", methods=["POST"])
+@bp.route("/ndml/api/v1/kyc-download", methods=["POST"])
 def kyc_download():
     data = request.json
 

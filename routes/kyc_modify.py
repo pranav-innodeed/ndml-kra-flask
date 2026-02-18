@@ -5,7 +5,7 @@ from services.xml_builder import kyc_modify_xml
 bp = Blueprint("kyc_modify", __name__)
 client = NDMLClient()
 
-@bp.route("/kyc-modify", methods=["POST"])
+@bp.route("/ndml/api/v1/kyc-modify", methods=["POST"])
 def kyc_modify():
     data = request.json
 

@@ -9,12 +9,18 @@ class NDMLClient:
             return self.mock_response(method_name, xml_bytes)
 
         # REAL NDML CALL (will be used later)
+        from requests import Session
         from zeep import Client
         from zeep.transports import Transport
 
+        session = Session()
+        server_ip = os.getenv("SERVERIP")
+        if server_ip:
+            session.headers.update({"SERVERIP": server_ip})
+
         client = Client(
             wsdl=os.getenv("NDML_WSDL"),
-            transport=Transport(timeout=30)
+            transport=Transport(session=session, timeout=30)
         )
 
         enc_pwd = client.service.getPasscode(
