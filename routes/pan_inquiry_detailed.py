@@ -86,6 +86,11 @@ def pan_inquiry_detailed():
         xml = pan_inquiry_detailed_xml(data["pan"], data["mobile"], data["request_no"])
         print(f"xml\n")
         print(xml)
+        if isinstance(xml_bytes, bytes):
+            xml_bytes = xml_bytes.decode("utf-8")
+
+        xml_bytes = xml_bytes.strip()
+
         # response = client.call("panInquiryDetailsTwo", xml)
         # print(f"pan details response: {response}")
         enc_pwd = get_passcode()
