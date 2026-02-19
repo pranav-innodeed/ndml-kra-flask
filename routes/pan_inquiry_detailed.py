@@ -75,6 +75,7 @@ def pan_inquiry(xml_bytes, enc_pwd):
     }
 
     response = requests.post(url, data=soap_body, headers=headers, timeout=30)
+    print(response)
     return response.text
 
 
