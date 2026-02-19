@@ -3,11 +3,14 @@ from services.ndml_client import NDMLClient
 from services.xml_builder import pan_inquiry_detailed_xml
 from services.utils import xml_to_json
 import json
+
 bp = Blueprint("pan_inquiry_detailed", __name__)
 client = NDMLClient()
 
 import requests
 import os
+import xml.etree.ElementTree as ET
+
 
 def get_passcode():
     url = os.getenv("NDML_ENDPOINT")  # without ?wsdl
@@ -25,14 +28,12 @@ def get_passcode():
     </soapenv:Envelope>
     """
 
-    headers = {
-        "Content-Type": "text/xml;charset=UTF-8",
-        "SOAPAction": "getPasscode"
-    }
+    headers = {"Content-Type": "text/xml;charset=UTF-8", "SOAPAction": "getPasscode"}
 
     response = requests.post(url, data=soap_body, headers=headers, timeout=30)
     print(response.text)
     return response.text
+
 
 def pan_inquiry(xml_bytes, enc_pwd):
     url = os.getenv("NDML_ENDPOINT")
@@ -55,11 +56,12 @@ def pan_inquiry(xml_bytes, enc_pwd):
 
     headers = {
         "Content-Type": "text/xml;charset=UTF-8",
-        "SOAPAction": "panInquiryDetailsTwo"
+        "SOAPAction": "panInquiryDetailsTwo",
     }
 
     response = requests.post(url, data=soap_body, headers=headers, timeout=30)
     return response.text
+
 
 @bp.route("/ndml/api/v1/pan-inquiry-detailed", methods=["POST"])
 def pan_inquiry_detailed():
@@ -71,7 +73,12 @@ def pan_inquiry_detailed():
         # response = client.call("panInquiryDetailsTwo", xml)
         # print(f"pan details response: {response}")
         enc_pwd = get_passcode()
-        print(f"enc_pwd: {enc_pwd}")
+        response_xml = enc_pwd
+        root = ET.fromstring(response_xml)
+
+        enc_pwd = root.find(".//return").text
+        print("Encrypted Password:", enc_pwd)
+
         response = pan_inquiry(xml, enc_pwd)
         print(f"pan inquiry response: {response}")
         response = xml_to_json(response)
