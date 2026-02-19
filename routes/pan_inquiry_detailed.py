@@ -59,11 +59,10 @@ def pan_inquiry(xml_bytes, enc_pwd):
     <soapenv:Header/>
     <soapenv:Body>
         <ns:panInquiryDetailsTwo>
-            <arg0>{xml_bytes}</arg0>
+            <arg0><![CDATA[{xml_bytes}]]></arg0>
             <arg1>{os.getenv("NDML_USER_ID")}</arg1>
             <arg2>{enc_pwd}</arg2>
             <arg3>{os.getenv("NDML_PASSKEY")}</arg3>
-
         </ns:panInquiryDetailsTwo>
     </soapenv:Body>
     </soapenv:Envelope>
