@@ -13,3 +13,4 @@ __pycache__
 *.pyzwzwz
 .newenv
 .env
+.env.prod
