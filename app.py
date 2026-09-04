@@ -1,13 +1,15 @@
 from flask import Flask
 from dotenv import load_dotenv
 
+# Must load before route imports: NDMLClient reads USE_MOCK at module import time
+load_dotenv()
+
 from routes.pan_inquiry import bp as pan_inquiry
 from routes.pan_inquiry_detailed import bp as pan_inquiry_detailed
 from routes.kyc_download import bp as kyc_download
 from routes.kyc_register import bp as kyc_register
 from routes.kyc_modify import bp as kyc_modify
 from routes.pan_inquiry_detailed2 import bp as pan_inquiry_detailed2
-load_dotenv()
 
 app = Flask(__name__)
 
