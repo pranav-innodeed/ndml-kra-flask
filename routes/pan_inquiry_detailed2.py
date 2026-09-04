@@ -22,7 +22,7 @@ def pan_inquiry_detailed2():
         response = client.call("panInquiryDetailsTwo", xml)
         print(f"pan details response: {response}")
         response = xml_to_json(response)
-        response = {"status": "success", "data": response}
+        response = {"status": "success", "data": json.loads(response)}
         return response, 200
     except Exception as e:
         response = {"status": "error", "message": str(e)}
